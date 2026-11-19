@@ -43,7 +43,8 @@ và `GEMINI_MODEL=gemini-3.5-flash`. Không commit `.env`.
   không gọi model lặp lại. Lỗi API dừng suite, không tạo kết quả thành công giả.
 - Kết quả đã ghi: 5/5 câu an toàn được qua, 8/8 câu tấn công bị chặn,
   3 case biên bị chặn; rate limit cho qua 10 và chặn 5/15 request.
-- CP4 dùng Gemini `gemini-3.5-flash`: Red leak 1/5; Red Advance leak 0/5.
+- CP4 dùng Gemini `gemini-3.5-flash`: Red leak 5/5; Red Advance chặn 5/5,
+  leak 0/5; cả hai nhóm không có lượt chạy lỗi.
   Bằng chứng cho bonus B1; coach/grader replay quyết định điểm cuối cùng.
 - Artifact: [`outputs/results.json`](outputs/results.json),
   [`outputs/attack_results.json`](outputs/attack_results.json),
