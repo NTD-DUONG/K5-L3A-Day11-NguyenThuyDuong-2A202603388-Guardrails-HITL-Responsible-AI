@@ -1,5 +1,63 @@
 # Day 11 — Controlled Agent Security (2026)
 
+## Thông tin bài nộp
+
+- **Họ và tên:** Nguyễn Thùy Dương
+- **MSSV:** `2A202603388`
+- **Lớp:** L3A — Khóa 5
+- **Tên repo theo quy ước:** `K5-L3A-DAY11-NguyenThuyDuong-2A202603388-Guardrails-HITL-Responsible-AI`
+
+### Cách chạy trên Windows (PowerShell)
+
+Chạy tại thư mục gốc repo. Khi cài lần đầu:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+```
+
+Điền key thật trong `.env`: `OPENROUTER_API_KEY` cho Blue; chọn Gemini cho Red
+bằng `RED_TEAM_PROVIDER=gemini`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_USE_VERTEXAI=0`
+và `GEMINI_MODEL=gemini-3.5-flash`. Không commit `.env`.
+
+```powershell
+# CP2: kiểm tra input/output guardrails
+.\.venv\Scripts\python.exe -X utf8 src/main.py --part 2
+# CP3: gọi Blue thật, sinh kết quả phòng thủ, audit và metrics
+.\.venv\Scripts\python.exe -X utf8 src/main.py --part 3
+# CP4: thử 5 prompt trên Red và Red Advance, sinh bằng chứng
+.\.venv\Scripts\python.exe -X utf8 src/main.py --part 4
+# CP5: kiểm thử và tự sinh báo cáo
+.\.venv\Scripts\python.exe -m pytest tests/smoke tests/public -q -p no:cacheprovider
+.\.venv\Scripts\python.exe -X utf8 scripts/grade.py --submission-dir . --out outputs/grade_report.json
+```
+
+### Phần đã triển khai và bằng chứng
+
+- CP2: chuẩn hóa Unicode, phát hiện injection, lọc chủ đề; che PII và secret demo.
+- CP3: sliding-window rate limit theo người dùng; audit và monitoring là các observer
+  bên cạnh pipeline; plugin chạy theo thứ tự RateLimit → Input → Output.
+  Egress chỉ cho HTTPS đến domain VinBank được phép và không chứa dữ liệu nhạy cảm.
+- Suite CP3 dùng model Blue cố định; nhóm spam đo riêng rate-limiter admission,
+  không gọi model lặp lại. Lỗi API dừng suite, không tạo kết quả thành công giả.
+- Kết quả đã ghi: 5/5 câu an toàn được qua, 8/8 câu tấn công bị chặn,
+  3 case biên bị chặn; rate limit cho qua 10 và chặn 5/15 request.
+- CP4 dùng Gemini `gemini-3.5-flash`: Red leak 1/5; Red Advance leak 0/5.
+  Bằng chứng cho bonus B1; coach/grader replay quyết định điểm cuối cùng.
+- Artifact: [`outputs/results.json`](outputs/results.json),
+  [`outputs/attack_results.json`](outputs/attack_results.json),
+  [`outputs/audit_log.json`](outputs/audit_log.json),
+  [`outputs/metrics.json`](outputs/metrics.json).
+- Báo cáo tự sinh: [`outputs/grade_report.json`](outputs/grade_report.json),
+  [`outputs/lab_report.md`](outputs/lab_report.md).
+
+Các bộ lọc regex phục vụ phạm vi lab, chưa bảo đảm nhận diện mọi cách mã hóa
+hoặc mọi biến thể ngôn ngữ. LLM-as-Judge và NeMo cho Blue là phần tùy chọn;
+Red Advance giữ nguyên các lớp bảo vệ của starter.
+
+---
+
 > 👤 **Hình thức:** bài tập **cá nhân** (1 người / 1 MSSV).  
 > 🎯 **Mục tiêu:** đóng vai **Blue Team** để học cách xây Guardrails phòng thủ, rồi đóng vai **Red Team** để tấn công agent **Red** hoặc **Red Advance**.  
 > ✅ Làm theo **Checkpoint 1 → 5** trong [`CHECKPOINTS.md`](CHECKPOINTS.md) · nộp theo [`SUBMISSION.md`](SUBMISSION.md).
